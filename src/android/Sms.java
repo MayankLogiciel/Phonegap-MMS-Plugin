@@ -110,45 +110,46 @@ public class Sms extends CordovaPlugin {
 			sendIntent.putExtra("address",phoneNumber);
 			sendIntent.putExtra("sms_body", message);
 
-			String imageDataBytes = imageFile.substring(imageFile.indexOf(",")+1);           
+			// String imageDataBytes = imageFile.substring(imageFile.indexOf(",")+1);           
 
-			byte[] decodedString = Base64.decode(imageDataBytes, Base64.DEFAULT);
-			Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length); 
+			// byte[] decodedString = Base64.decode(imageDataBytes, Base64.DEFAULT);
+			// Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length); 
 
-			String saveFilePath = Environment.getExternalStorageDirectory() + "/HealthAngel";
-			File dir = new File(saveFilePath);
+			// String saveFilePath = Environment.getExternalStorageDirectory() + "/HealthAngel";
+			// File dir = new File(saveFilePath);
 
-			if(!dir.exists())
-				dir.mkdirs();
+			// if(!dir.exists())
+			// 	dir.mkdirs();
 
-			File file = new File(dir, "logo.png");
+			// File file = new File(dir, "logo.png");
 
-			FileOutputStream fOut = null;
+			// FileOutputStream fOut = null;
 
-			try {
-				fOut = new FileOutputStream(file);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// try {
+			// 	fOut = new FileOutputStream(file);
+			// } catch (FileNotFoundException e) {
+			// 	// TODO Auto-generated catch block
+			// 	e.printStackTrace();
+			// }
 
-			decodedByte.compress(Bitmap.CompressFormat.PNG, 40, fOut);
+			// decodedByte.compress(Bitmap.CompressFormat.PNG, 40, fOut);
 
-			try {
-				fOut.flush();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// try {
+			// 	fOut.flush();
+			// } catch (IOException e) {
+			// 	// TODO Auto-generated catch block
+			// 	e.printStackTrace();
+			// }
 
-			try {
-				fOut.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// try {
+			// 	fOut.close();
+			// } catch (IOException e) {
+			// 	// TODO Auto-generated catch block
+			// 	e.printStackTrace();
+			// }
 
-			sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(saveFilePath + "/logo.png")));
+			// sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(saveFilePath + "/logo.png")));
+			sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(imageFile));
 			sendIntent.setType("image/*");
 			this.cordova.getActivity().startActivity(sendIntent);
 		}
