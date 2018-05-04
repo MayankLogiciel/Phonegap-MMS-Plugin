@@ -1,0 +1,34 @@
+{
+    "name": "CordovaMMS",
+    "version": "0.1.0",
+    "description": "MMS plugin for Cordova/PhoneGap",
+    "cordova": {
+        "id": "org.apache.cordova.plugin.mms",
+        "platforms": [
+            "ios",
+            "android"
+        ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MayankLogiciel/Phonegap-MMS-Plugin.git"
+    },
+    "keywords": [
+        "mms",
+        "sms",
+        "android-mms",
+        "ecosystem:cordova",
+        "cordova-ios",
+        "cordova-android"
+    ],
+    "engines": [{
+        "name": "cordova",
+        "version": ">=3.0.0"
+    }],
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/MayankLogiciel/Phonegap-MMS-Plugin/issues"
+    },
+    "homepage": "https://github.com/MayankLogiciel/Phonegap-MMS-Plugin#readme"
+}
