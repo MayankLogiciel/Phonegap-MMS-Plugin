@@ -1,6 +1,7 @@
 package org.apache.cordova.plugin.sms;
 
 import android.annotation.SuppressLint;
+import java.util.List;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -11,7 +12,10 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.content.pm.ResolveInfo;	
 import android.os.Environment;
+import android.os.Build;
+import android.util.Log;
 import android.telephony.SmsManager;
 import android.util.Base64;
 import java.io.File;
@@ -24,6 +28,8 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import io.github.pwlin.cordova.plugins.fileopener2.FileProvider;
+import org.apache.cordova.CordovaResourceApi;
 
 public class Sms extends CordovaPlugin {
 	public final String ACTION_SEND_SMS = "send";
@@ -40,7 +46,6 @@ public class Sms extends CordovaPlugin {
 				String message = args.getString(1);
 				String imageFile = args.getString(2);
 				String method = args.getString(3);
-
 
 				if (!checkSupport()) {
 					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "SMS not supported on this platform"));
@@ -104,55 +109,61 @@ public class Sms extends CordovaPlugin {
 
 	@SuppressLint("NewApi")
 	private void invokeSMSIntent(String phoneNumber, String message, String imageFile) {
+
+		// Function edited By Karanveer singh on 28-jun-2018
 		Intent sendIntent;
-		if (!"".equals(phoneNumber)) {
-			sendIntent = new Intent(Intent.ACTION_SEND);
-			sendIntent.putExtra("address",phoneNumber);
+
+		sendIntent = new Intent(Intent.ACTION_SEND);
+
+		// When the user wants to open sms app with image attachment then we set the path of image accordingingly
+		if (!imageFile.equals("")) {
+			
+			String fileName = "";
+			try {
+				CordovaResourceApi resourceApi = webView.getResourceApi();
+				Uri fileUri = resourceApi.remapUri(Uri.parse(imageFile));
+				fileName = this.stripFileProtocol(fileUri.toString());
+			} catch (Exception e) {
+				fileName = imageFile;
+			}
+
+			File file = new File(fileName);
+
+			Uri path = Uri.fromFile(file);
+
+			Context context = cordova.getActivity().getApplicationContext();
+			path = FileProvider.getUriForFile(context, cordova.getActivity().getPackageName() + ".opener.provider", file);
+			sendIntent.setDataAndType(path, "image/*");
+			sendIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			sendIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+			List<ResolveInfo> infoList = context.getPackageManager().queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY);
+			for (ResolveInfo resolveInfo : infoList) {
+		    String packageName = resolveInfo.activityInfo.packageName;
+		    context.grantUriPermission(packageName, path, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+			
+			sendIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			sendIntent.putExtra(Intent.EXTRA_STREAM, path);
+
+			// which devices have android version is 6 or updated in those devices we are sending message text 
+			// and Phone numbers also but in updated version are not sported to get number for open in message app
+			if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+				sendIntent.putExtra("sms_body", message);
+				sendIntent.putExtra("address", phoneNumber);
+			} else {
+				sendIntent.putExtra(Intent.EXTRA_TEXT, message);
+			}
+
+		} else {
+			// for open the app for normal text message
+			sendIntent.setType("text/plain");
+
 			sendIntent.putExtra("sms_body", message);
-
-			// String imageDataBytes = imageFile.substring(imageFile.indexOf(",")+1);           
-
-			// byte[] decodedString = Base64.decode(imageDataBytes, Base64.DEFAULT);
-			// Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length); 
-
-			// String saveFilePath = Environment.getExternalStorageDirectory() + "/HealthAngel";
-			// File dir = new File(saveFilePath);
-
-			// if(!dir.exists())
-			// 	dir.mkdirs();
-
-			// File file = new File(dir, "logo.png");
-
-			// FileOutputStream fOut = null;
-
-			// try {
-			// 	fOut = new FileOutputStream(file);
-			// } catch (FileNotFoundException e) {
-			// 	// TODO Auto-generated catch block
-			// 	e.printStackTrace();
-			// }
-
-			// decodedByte.compress(Bitmap.CompressFormat.PNG, 40, fOut);
-
-			// try {
-			// 	fOut.flush();
-			// } catch (IOException e) {
-			// 	// TODO Auto-generated catch block
-			// 	e.printStackTrace();
-			// }
-
-			// try {
-			// 	fOut.close();
-			// } catch (IOException e) {
-			// 	// TODO Auto-generated catch block
-			// 	e.printStackTrace();
-			// }
-
-			// sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(saveFilePath + "/logo.png")));
-			sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(imageFile));
-			sendIntent.setType("image/*");
-			this.cordova.getActivity().startActivity(sendIntent);
+			sendIntent.putExtra("address", phoneNumber);
 		}
+		
+		this.cordova.getActivity().startActivity(sendIntent);
 
 	}
 
@@ -186,4 +197,14 @@ public class Sms extends CordovaPlugin {
 			}
 		}
 	}
+
+	private String stripFileProtocol(String uriString) {
+		if (uriString.startsWith("file://")) {
+			uriString = uriString.substring(7);
+		} else if (uriString.startsWith("content://")) {
+			uriString = uriString.substring(10);
+		}
+		return uriString;
+	}
+
 }
