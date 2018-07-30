@@ -16,7 +16,7 @@ Installation
 
 Using the Phonegap CLI run:
 
-    Cordova plugin add https://github.com/christyrajupaul/phonegap-sms-plugin.git
+    Cordova plugin add https://github.com/MayankLogiciel/Phonegap-MMS-Plugin.git
 
 This will place the plugin in your plugins directory and update your android.json file that keeps track of installed plugins.
 
